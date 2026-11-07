@@ -1,0 +1,54 @@
+services:
+  # PostgreSQL Ma'lumotlar bazasi
+  postgres:
+    image: postgres:16-alpine
+    container_name: uzmegatv_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: uzmegatv
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: superpassword123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d uzmegatv"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis kesh va FSM xotirasi
+  redis:
+    image: redis:7-alpine
+    container_name: uzmegatv_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # UZMEGATV Telegram Boti
+  bot:
+    build: .
+    container_name: uzmegatv_bot
+    restart: always
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:superpassword123@postgres:5432/uzmegatv
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
