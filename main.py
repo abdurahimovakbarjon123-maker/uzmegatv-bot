@@ -42,6 +42,21 @@ async def create_storage():
     return MemoryStorage()
 
 
+async def self_ping_loop(url: str, interval_seconds: int = 480) -> None:
+    """Render 15 daqiqalik uyquga ketmasligi uchun har 8 daqiqada o'zini o'zi ping qilib turadi."""
+    import aiohttp
+    logger.info(f"Self-ping avto-uyg'otish xizmati ishga tushdi: {url} (har {interval_seconds} soniyada)")
+    await asyncio.sleep(60)
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{url}/health", timeout=15) as resp:
+                    logger.info(f"Keep-alive self-ping muvaffaqiyatli: {resp.status} (Render 24/7 tirik saqlandi)")
+        except Exception as e:
+            logger.warning(f"Self-ping xatoligi: {e}")
+        await asyncio.sleep(interval_seconds)
+
+
 async def main() -> None:
     """Botni ishga tushirishning asosiy nuqtasi."""
     logger.info("UZMEGATV boti ishga tushirilmoqda...")
@@ -111,6 +126,9 @@ async def main() -> None:
             logger.info(f"Telegram Webhook sozlanmoqda: {webhook_url}")
             await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
             logger.info(f"✅ Bot Webhook rejimida 24/7 internetda to'liq ishga tushdi!")
+
+            # Render hech qachon uyquga ketmasligi uchun o'zini o'zi doimiy ping qilib turadi
+            asyncio.create_task(self_ping_loop(base_url, interval_seconds=480))
 
             # Server to'xtatilguncha kutib turamiz
             stop_event = asyncio.Event()
