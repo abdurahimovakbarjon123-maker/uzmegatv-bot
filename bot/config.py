@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str = "DEFAULT_TOKEN"
     BOT_USERNAME: str = "uz_megatv_bot"
-    ADMIN_IDS: Union[str, List[int]] = [6786983910, 6763240170, 7584302635]
+    ADMIN_IDS: Union[str, List[int]] = [6786983910]
     ADMIN_USERNAMES: Union[str, List[str]] = ["abdurahimoovvvv"]
     DATABASE_URL: str = "sqlite+aiosqlite:///uzmegatv.db"
     REDIS_URL: Optional[str] = None
